@@ -4,12 +4,12 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { FontLoader , Font} from 'three/examples/jsm/loaders/FontLoader.js';
 
 
-export default function EarthTextureSphere() {
+export default function EarthWithText() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     let scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer;
-    let sphere: THREE.Mesh;
+    let earth: THREE.Mesh;
 
     // レンダラーの作成
     renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current! });
@@ -27,31 +27,15 @@ export default function EarthTextureSphere() {
 
     // テクスチャの読み込みとマテリアルへの適用
     const textureLoader = new THREE.TextureLoader();
-    const texture = textureLoader.load('textures/earth.jpg'); // 地球のテクスチャ画像へのパスを指定
+    const texture = textureLoader.load('/textures/earth.jpg'); // 地球のテクスチャ画像へのパスを指定
     const material = new THREE.MeshPhongMaterial({ map: texture }); // マテリアルにテクスチャを適用
 
-    sphere = new THREE.Mesh(geometry, material);
+    earth = new THREE.Mesh(geometry, material);
 
     // 球体をシーンに追加
-    scene.add(sphere);
+    scene.add(earth);
 
-    // 回転するライトの作成
-    const light = new THREE.PointLight(0xffffff, 1, 100);
-    scene.add(light);
-
-    //上からのライト
-    const topLight = new THREE.DirectionalLight(0xffffff, 1);
-    topLight.position.set(0, 1, 0); // 上方向からの光源
-    scene.add(topLight);
-
-
-    // ライトの位置を制御する球体の作成（回転させることは無くなるので、コメントアウト）
-    const lightGeometry = new THREE.SphereGeometry(0.1, 8, 8);
-    const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-    const lightSphere = new THREE.Mesh(lightGeometry, lightMaterial);
-    //scene.add(lightSphere);
-
-    //テキストの作成
+    // 地球の周りにテキストを配置するためのグループ
     const textGroup = new THREE.Group();
     scene.add(textGroup);
 
@@ -70,20 +54,19 @@ export default function EarthTextureSphere() {
     });
 
 
-
     // アニメーションのループ処理
     const animate = () => {
       requestAnimationFrame(animate);
 
       // ライトを回転させる（不要になるのでコメントアウト）
-     const time = Date.now() * 0.001;
-    const radius = 3;
-     light.position.x = Math.cos(time) * radius;
-      light.position.z = Math.sin(time) * radius;
-     lightSphere.position.copy(light.position);
+      // const time = Date.now() * 0.001;
+      // const radius = 3;
+      // light.position.x = Math.cos(time) * radius;
+      // light.position.z = Math.sin(time) * radius;
+      // lightSphere.position.copy(light.position);
 
       // 球体を回転させる
-      sphere.rotation.y += 0.005;
+      earth.rotation.y += 0.005;
 
       // レンダリング
       renderer.render(scene, camera);
