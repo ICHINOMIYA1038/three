@@ -2,10 +2,15 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { FontLoader , Font} from 'three/examples/jsm/loaders/FontLoader.js';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
+
 
 
 export default function EarthTextureSphere() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  let mixer: THREE.AnimationMixer | null = null;
+  let animations: THREE.AnimationClip[] = [];
+
 
   useEffect(() => {
     let scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer;
@@ -40,7 +45,7 @@ export default function EarthTextureSphere() {
     scene.add(light);
 
     //上からのライト
-    const topLight = new THREE.DirectionalLight(0xffffff, 1);
+    const topLight = new THREE.DirectionalLight(0xffffff, 0.2);
     topLight.position.set(0, 1, 0); // 上方向からの光源
     scene.add(topLight);
 
@@ -54,20 +59,58 @@ export default function EarthTextureSphere() {
     //テキストの作成
     const textGroup = new THREE.Group();
     scene.add(textGroup);
-
     const fontLoader = new FontLoader();
-    fontLoader.load('/fonts/helvetiker_bold.typeface.json', (font: Font) => { // Replace with the path to your font file
-        const textGeometry = new TextGeometry('Hello, World', {
+    fontLoader.load('/fonts/gentilis_regular.typeface.json', (font: Font) => { 
+        const textGeometry = new TextGeometry('Hello,World', {
           font: font,
-          size: 0.2,
+          size: 1,
           height: 0.02,
         });
         const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff }); // 白色のマテリアル
         const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-        textMesh.position.set(1.5, 0, 0); // テキストの位置を地球から適切な位置に設定
+        textMesh.position.set(-3, 3, -5); // テキストの位置を地球から適切な位置に設定
     
         textGroup.add(textMesh);
     });
+
+    //fbxモデルの表示
+    const fbxLoader = new FBXLoader();
+    fbxLoader.load('/model/Walking.fbx', (fbxModel) => {
+    // You can adjust the position, rotation, and scale of the model as needed.
+    fbxModel.position.set(0, 0, 0);
+    fbxModel.rotation.set(0, 0, 0);
+    fbxModel.scale.set(0.01, 0.01, 0.01);
+
+    // Add the FBX model to the scene
+    scene.add(fbxModel);
+
+    mixer = new THREE.AnimationMixer(fbxModel);
+    animations = fbxModel.animations;
+    if (animations && animations.length > 0) {
+      mixer.clipAction(animations[0]).play(); // Start with Animation 0
+    }
+  });
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    switch (event.key) {
+      case 'a':
+        if (mixer && animations.length >= 1) {
+          mixer.stopAllAction();
+          mixer.clipAction(animations[0]).play();
+        }
+        break;
+      case 'b':
+        if (mixer && animations.length >= 2) {
+          mixer.stopAllAction();
+          mixer.clipAction(animations[1]).play();
+        }
+        break;
+      default:
+        break;
+    }
+  };
+
+  window.addEventListener('keydown', handleKeyDown);
 
 
 
@@ -109,6 +152,8 @@ export default function EarthTextureSphere() {
     // コンポーネントがアンマウントされる際にリサイズイベントのリスナーを削除
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('keydown', handleKeyDown);
+
     };
   }, []);
 

@@ -8,7 +8,7 @@ import EarthWithText from './components/EarthWithText'
 function App() {
   return (
     <div className="App">
-      <EarthWithText/>
+      <EarthTextureSphere/>
     </div>
   );
 }
